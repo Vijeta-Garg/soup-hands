@@ -1,128 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOUP HANDS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        h1 {
-            font-size: 50px;
-            font-family: 'Courier New', Courier, monospace;
-            color: orange;
-            text-align: center;
-
+        * {
+            box-sizing: border-box;
         }
+
         body {
             margin: 0;
-            font-family: Arial;
-            background: white;
-            color: white;
-            margin-top: 100px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #FFF9E5;
+            font-family: 'Cinzel', serif;
         }
 
-        .container {
+        h1 {
+            margin: 0 0 32px;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(2rem, 6vw, 3.25rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #000033;
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow:
+                0 0 8px #FFD700,
+                0 0 16px #FFD700,
+                0 0 24px rgba(255, 215, 0, 0.6),
+                2px 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .hands-wrap {
             position: relative;
-            width: 900px;
-            margin: 40px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            width: min(900px, 92vw);
+            margin-bottom: 36px;
         }
 
-        #hand {
-            width: 100%;
+        .hand {
+            width: min(380px, 42vw);
+            height: auto;
             display: block;
             user-select: none;
             pointer-events: none;
+            mix-blend-mode: screen;
         }
 
-        /* SENSOR BOX */
+        .hand.right {
+            transform: scaleX(-1);
+        }
+
         .sensor {
             position: absolute;
-            width: 80px;
-            height: 80px;
-            background: rgba(0, 255, 0, 0.5);
-            border: 2px solid white;
+            width: 72px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid #3d7fd4;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 40, 40, 0.85) 0%,
+                rgba(255, 140, 0, 0.7) 30%,
+                rgba(255, 220, 0, 0.55) 55%,
+                rgba(80, 200, 80, 0.45) 80%,
+                rgba(80, 200, 80, 0.2) 100%
+            );
             cursor: grab;
-            resize: both;
-            overflow: auto;
+            opacity: 0.92;
         }
 
         .sensor:active {
             cursor: grabbing;
         }
 
-        #sensor1 { top: 450px; left: 100px; }
-        #sensor2 { top: 200px; left: 300px; }
+        #sensor1 { top: 58%; left: 14%; }
+        #sensor2 { top: 28%; left: 22%; }
+        #sensor3 { top: 58%; right: 14%; }
+        #sensor4 { top: 28%; right: 22%; }
+
+        .buttons {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #000066;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 44px;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .btn:hover {
+            background: #000088;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
 <body>
 
-<h1><bold>SOUP HANDS</bold></h1>
+    <h1>SOUP HANDS</h1>
 
-<h2 style="text-align:center;">soup-hands</h2>
+    <div class="hands-wrap">
+        <img class="hand left" src="assets/hands.png" alt="Left hand">
+        <img class="hand right" src="assets/hands.png" alt="Right hand">
 
-<div class="container">
+        <div id="sensor1" class="sensor"></div>
+        <div id="sensor2" class="sensor"></div>
+        <div id="sensor3" class="sensor"></div>
+        <div id="sensor4" class="sensor"></div>
+    </div>
 
-    <img id="hand"
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8gUoKCZA7wYE2ZOa-MmyfsCaMMQx-iIXf0rgs1GQ766JnCnYVfn_kll8&s=10">
+    <div class="buttons">
+        <button class="btn" type="button">send</button>
+        <button class="btn" type="button">recieve</button>
+    </div>
 
-    <div id="sensor1" class="sensor"></div>
-    <div id="sensor2" class="sensor"></div>
-    <div id="sensor3" class="sensor"></div>
-    <div id="sensor4" class="sensor"></div>
+    <script src="/socket.io/socket.io.js"></script>
 
+    <script>
+        const socket = io();
 
-</div>
+        const heatMapGradient = (innerColor) =>
+            `radial-gradient(ellipse at center, ${innerColor} 0%, rgba(255,140,0,0.7) 30%, rgba(255,220,0,0.55) 55%, rgba(80,200,80,0.45) 80%, rgba(80,200,80,0.2) 100%)`;
 
-<script src="/socket.io/socket.io.js"></script>
+        socket.on("sensor", data => {
+            let innerColor = "rgba(128,128,128,0.85)";
 
-<script>
-const socket = io();
+            const category = Number(data.category);
+            const sensor = Number(data.sensor);
 
-// ---- LIVE COLOR UPDATES ----
-socket.on("sensor", data => {
+            if (category === 0) innerColor = "rgba(80,200,80,0.85)";
+            else if (category === 1) innerColor = "rgba(255,220,0,0.85)";
+            else innerColor = "rgba(255,40,40,0.85)";
 
-    let color = "gray";
+            const box = document.getElementById("sensor" + sensor);
+            if (box) box.style.background = heatMapGradient(innerColor);
+        });
 
-    const category = Number(data.category);
-    const sensor = Number(data.sensor);
+        function makeDraggable(el) {
+            let offsetX, offsetY, dragging = false;
 
-    if (category === 0) color = "rgba(0,255,0,0.6)";
-    else if (category === 1) color = "rgba(255,255,0,0.6)";
-    else color = "rgba(255,0,0,0.6)";
+            el.addEventListener("mousedown", (e) => {
+                dragging = true;
+                offsetX = e.clientX - el.offsetLeft;
+                offsetY = e.clientY - el.offsetTop;
+            });
 
-    const box = document.getElementById("sensor" + sensor);
-    if (box) box.style.backgroundColor = color;
-});
+            document.addEventListener("mousemove", (e) => {
+                if (!dragging) return;
+                el.style.left = (e.clientX - offsetX) + "px";
+                el.style.top = (e.clientY - offsetY) + "px";
+                el.style.right = "auto";
+            });
 
+            document.addEventListener("mouseup", () => {
+                dragging = false;
+            });
+        }
 
-// ---- DRAG FUNCTION ----
-function makeDraggable(el) {
-    let offsetX, offsetY, dragging = false;
-
-    el.addEventListener("mousedown", (e) => {
-        dragging = true;
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-    });
-
-    document.addEventListener("mousemove", (e) => {
-        if (!dragging) return;
-        el.style.left = (e.clientX - offsetX) + "px";
-        el.style.top = (e.clientY - offsetY) + "px";
-    });
-
-    document.addEventListener("mouseup", () => {
-        dragging = false;
-    });
-}
-
-// enable dragging
-makeDraggable(document.getElementById("sensor1"));
-makeDraggable(document.getElementById("sensor2"));
-makeDraggable(document.getElementById("sensor3"));
-makeDraggable(document.getElementById("sensor4"));
-
-</script>
+        makeDraggable(document.getElementById("sensor1"));
+        makeDraggable(document.getElementById("sensor2"));
+        makeDraggable(document.getElementById("sensor3"));
+        makeDraggable(document.getElementById("sensor4"));
+    </script>
 
 </body>
 </html>
