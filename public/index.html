@@ -1,316 +1,390 @@
 <!DOCTYPE html>
-<html>
 
-<head>
-    <title>SOUP HANDS</title>
-
-    <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-
-        .buttonWrap{
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-
-    display:flex;
-    justify-content:center;
-}
-
-
-        body{
-            font-family: Arial, sans-serif;
-            background: linear-gradient(180deg, #FFFDF8, #FFF4E6);
-            margin-top: 60px;
-            color:#222;
-        }
-
-        /* ---------------- HEADER ---------------- */
-
-        #handshakeBtn{
-
-    background:#7a4a2d;  /* brown */
-
-    color:white;
-
-    font-size:18px;
-
-    font-family:"Courier New", monospace;
-
-    letter-spacing:2px;
-
-    padding:14px 30px;
-
-    border:none;
-
-    border-radius:12px;
-
-    cursor:pointer;
-
-    box-shadow:0 10px 25px rgba(122,74,45,0.35);
-
-    transition: all 0.2s ease;
-}
-
-#handshakeBtn:hover{
-    transform:translateY(-2px);
-    box-shadow:0 14px 30px rgba(122,74,45,0.5);
-}
-
-#handshakeBtn:active{
-    transform:translateY(1px);
-}
-
-        h1{
-            font-size:60px;
-            font-family:"Courier New", monospace;
-            color:#ff9800;
-            text-align:center;
-            letter-spacing:5px;
-
-            animation: floatTitle 3s ease-in-out infinite;
-        }
-
-        @keyframes floatTitle{
-            0%{ transform: translateY(0); }
-            50%{
-                transform: translateY(-6px);
-                text-shadow: 0 0 20px rgba(255,140,0,0.4);
-            }
-            100%{ transform: translateY(0); }
-        }
-
-        h2{
-            text-align:center;
-            font-family: monospace;
-            font-size:18px;
-            color:rgba(122,74,45,0.35);
-            margin-top:8px;
-        }
-
-        h2::after{
-            content:"";
-            animation:dots 1.5s infinite;
-        }
-
-        @keyframes dots{
-            0%{content:"";}
-            33%{content:".";}
-            66%{content:"..";}
-            100%{content:"...";}
-        }
-
-        /* ---------------- CONTAINER ---------------- */
-
-        .container {
-            position: relative;
-            width: 900px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 25px;
-            padding: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
-        }
-
-        #hand {
-            width: 100%;
-            display: block;
-            user-select: none;
-            pointer-events: none;
-        }
-
-        /* ---------------- SENSOR BOX ---------------- */
-
-        .sensor {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-
-            background: rgba(0, 255, 0, 0.5);
-
-            border: 2px solid white;
-
-            cursor: grab;
-
-            resize: both;
-            overflow: auto;
-
-            border-radius: 8px;
-
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-
-            transition: background-color 0.2s ease;
-        }
-
-        .sensor:active {
-            cursor: grabbing;
-        }
-
-        /* initial positions */
-
-        #sensor1 { top: 450px; left: 100px; }
-        #sensor2 { top: 200px; left: 300px; }
-        #sensor3 { top: 350px; left: 500px; }
-        #sensor4 { top: 150px; left: 650px; }
-
-    </style>
-
-    <script type="module">
-        class LineBreakTransformer {
-            buffer = "";
-
-            transform(chunk, controller) {
-                this.buffer += chunk;
-                const matches = [...this.buffer.matchAll(/1,.+\r\n(?:\d,.+\r\n){2}/g)]
-                // this.buffer = this.buffer.slice(matches.at(-1).index + matches.at(-1).length);
-
-                for (const line of matches) {
-                    this.buffer = "";
-                    controller.enqueue(line.toString());
-                }
-            }
-
-            flush(controller) {
-                // if (this.buffer) {
-                //     // controller.enqueue(this.buffer);
-                // }
-            }
-        }
-
-        const socket = new WebSocket("ws://localhost:3000");
-
-        // Serial
-        const serial_button = document.getElementById("serial");
-        let port = null;
-
-        serial_button.addEventListener("click", async () => {
-            port = await navigator.serial.requestPort();
-            await port.open({ baudRate: 9600 });
-
-            serial_button.remove();
-        });
-
-        // Sending
-        const handshake_button = document.getElementById("handshakeBtn");
-
-        handshake_button.addEventListener("click", async () => {
-            const text_decoder = new TextDecoderStream();
-            const line_transformer = new TransformStream(new LineBreakTransformer());
-            const decoder = port.readable
-                .pipeThrough(text_decoder)
-                .pipeThrough(line_transformer);
-
-            for await (const text of decoder) {
-                console.log("Sending: ", text);
-                socket.send(text);
-                break;
-            }
-        });
-
-        // Receiving
-        socket.addEventListener("message", (event) => {
-            console.log(`Received: ${event.data}`)
-            port.writable.getWriter().write(event.data);
-        });
-    </script>
-</head>
-
-<body>
-
-<h1>SOUP HANDS</h1>
-<h2>long distance handshakes at the end of the world...</h2>
-
-<div class="container">
-
-    <img id="hand"
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8gUoKCZA7wYE2ZOa-MmyfsCaMMQx-iIXf0rgs1GQ766JnCnYVfn_kll8&s=10">
-
-    <div id="sensor1" class="sensor"></div>
-    <div id="sensor2" class="sensor"></div>
-    <div id="sensor3" class="sensor"></div>
-    <div id="sensor4" class="sensor"></div>
-
-</div>
-
-<div class="buttonWrap">
-    <button id="serial">Connect serial</button>
-
-    <button id="handshakeBtn">
-        SEND HANDSHAKE
-    </button>
-</div>
-
-<script>
-/* ---------------- COLOR LOGIC ---------------- */
-
-// const socket2 = new WebSocket("ws://localhost:3000");
-
-// socket2.addEventListener("message", (event) => {
-//     const data = JSON.parse(event.data);
-//     let color = "gray";
-
-//     const category = Number(data.category);
-//     const sensor = Number(data.sensor);
-
-//     if (category === 0)
-//         color = "rgba(255,255,0,0.6)";   // yellow
-
-//     else if (category === 1)
-//         color = "rgba(255,165,0,0.6)";   // orange
-
-//     else
-//         color = "rgba(255,80,50,0.6)";   // red
-
-//     const box = document.getElementById("sensor" + sensor);
-
-//     if (box) box.style.backgroundColor = color;
-
-// });
-
-// /* ---------------- DRAG FUNCTION (UNCHANGED LOGIC) ---------------- */
-
-// function makeDraggable(el) {
-
-//     let offsetX, offsetY, dragging = false;
-
-//     el.addEventListener("mousedown", (e) => {
-
-//         dragging = true;
-
-//         offsetX = e.clientX - el.offsetLeft;
-//         offsetY = e.clientY - el.offsetTop;
-
-//     });
-
-//     document.addEventListener("mousemove", (e) => {
-
-//         if (!dragging) return;
-
-//         el.style.left = (e.clientX - offsetX) + "px";
-//         el.style.top = (e.clientY - offsetY) + "px";
-
-//     });
-
-//     document.addEventListener("mouseup", () => {
-
-//         dragging = false;
-
-//     });
-
-// }
-
-// /* enable dragging */
-
-// makeDraggable(document.getElementById("sensor1"));
-// makeDraggable(document.getElementById("sensor2"));
-// makeDraggable(document.getElementById("sensor3"));
-// makeDraggable(document.getElementById("sensor4"));
-</script>
-
-</body>
+<html lang="en">
+	<head>
+		<title>Soup Hands</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lakki+Reddy&display=swap" />
+
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				height: 100vh;
+				display: grid;
+				justify-content: center;
+				align-content: center;
+				font-family: "Lakki Reddy", serif;
+				background-color: #fffadf;
+			}
+
+			h1 {
+				font-size: 96px;
+				text-align: center;
+				text-transform: uppercase;
+				-webkit-text-stroke: 6px #ffe5a2;
+				paint-order: stroke fill;
+			}
+
+			#hands {
+				position: relative;
+
+				> .hand-stack {
+					position: absolute;
+					display: grid;
+					justify-items: center;
+					align-items: center;
+
+					&[data-side="left"][data-slot="1"] {
+						top: 200px;
+						left: 75px;
+					}
+
+					&[data-side="left"][data-slot="2"] {
+						top: 240px;
+						left: 40px;
+					}
+
+					&[data-side="left"][data-slot="3"] {
+						top: 275px;
+						left: 150px;
+					}
+
+					&[data-side="right"][data-slot="1"] {
+						top: 200px;
+						right: 75px;
+					}
+
+					&[data-side="right"][data-slot="2"] {
+						top: 240px;
+						right: 40px;
+					}
+
+					&[data-side="right"][data-slot="3"] {
+						top: 275px;
+						right: 150px;
+					}
+
+					> * {
+						grid-column: 1;
+						grid-row: 1;
+					}
+
+					> img {
+						opacity: 0;
+						transition: opacity 180ms ease-in-out;
+						will-change: opacity;
+					}
+
+					&[data-side="right"] > img {
+						transform: scaleX(-1);
+						transform-origin: center;
+					}
+				}
+			}
+
+			button {
+				font: inherit;
+			}
+
+			#buttons {
+				margin: 2rlh;
+				display: flex;
+				justify-content: center;
+				column-gap: 2rch;
+
+				> button {
+					font-size: 48px;
+					color: #fffce9;
+					background-color: #0058db;
+					line-height: 1;
+					padding-block: 1rlh;
+					padding-inline: 3rch;
+					padding-bottom: 0;
+					border: none;
+					border-radius: 25px;
+					cursor: pointer;
+					transition: background-color 0.2s ease-in-out;
+
+					&:hover {
+						background-color: #0041a8;
+					}
+				}
+			}
+		</style>
+
+		<script type="module">
+			class LineBreakTransformer {
+				buffer = "";
+
+				transform(chunk, controller) {
+					this.buffer += chunk;
+					const matches = Array.from(this.buffer.matchAll(/1,.+\r\n(?:\d,.+\r\n){2}/g));
+					// this.buffer = this.buffer.slice(matches.at(-1).index + matches.at(-1).length);
+
+					for (const line of matches) {
+						this.buffer = "";
+						controller.enqueue(line.toString());
+					}
+				}
+
+				flush(controller) {
+					// if (this.buffer) {
+					// 	controller.enqueue(this.buffer);
+					// }
+				}
+			}
+
+			function parse(data) {
+				const lines = data.split("\r\n");
+
+				return lines.map((line) => {
+					const [category, sensor, value] = line.split(",");
+					return { category: Number(category), sensor: Number(sensor), value: Number(value) };
+				});
+			}
+
+			const leftStacks = Array.from(document.querySelectorAll('#hands > .hand-stack[data-side="left"]'));
+			const mirroredStacks = leftStacks.map((stack) => {
+				const clone = stack.cloneNode(true);
+				clone.dataset.side = "right";
+				clone.id = `${stack.id}-right`;
+				stack.after(clone);
+				return clone;
+			});
+
+			const allStacks = [...leftStacks, ...mirroredStacks];
+			const frameCount = 6;
+			const totalSteps = frameCount * 2;
+			const cycleSteps = totalSteps + 0.75;
+			const stepDuration = 220;
+			const slotPhases = [0, 1.0, 1.95];
+			const sidePhases = { left: 0, right: 0.5 };
+			const fadeWidth = 0.65;
+			const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+			const stackFrames = allStacks.map((stack) => {
+				const frames = Array.from(stack.querySelectorAll('img[src*="/hands/left/"]'))
+					.map((img) => {
+						const match = img.getAttribute("src").match(/\/hands\/left\/(\d+)\/(\d+)\.png$/);
+						return { img, frame: Number(match?.[2] ?? 0) };
+					})
+					.sort((left, right) => left.frame - right.frame);
+
+				return {
+					stack,
+					frames,
+					phase: slotPhases[Number(stack.dataset.slot) - 1] + (sidePhases[stack.dataset.side] ?? 0),
+				};
+			});
+
+			if (reduceMotion) {
+				for (const { frames } of stackFrames) {
+					for (const { img } of frames) {
+						img.style.opacity = "1";
+					}
+				}
+			} else {
+				const stackOpacity = (progress, frameIndex) => {
+					const fadeInStart = frameIndex;
+					const fadeInEnd = frameIndex + fadeWidth;
+					const fadeOutEnd = totalSteps - frameIndex;
+					const fadeOutStart = fadeOutEnd - fadeWidth;
+
+					if (progress < fadeInStart || progress >= fadeOutEnd) {
+						return 0;
+					}
+
+					if (progress < fadeInEnd) {
+						return (progress - fadeInStart) / fadeWidth;
+					}
+
+					if (progress < fadeOutStart) {
+						return 1;
+					}
+
+					return 1 - (progress - fadeOutStart) / fadeWidth;
+				};
+
+				const renderStacks = (time) => {
+					const timeInSteps = (time / stepDuration) % cycleSteps;
+
+					for (const { frames, phase } of stackFrames) {
+						const progress = (timeInSteps + phase) % cycleSteps;
+
+						for (const { img, frame } of frames) {
+							img.style.opacity = String(stackOpacity(progress, frame - 1));
+						}
+					}
+
+					requestAnimationFrame(renderStacks);
+				};
+
+				requestAnimationFrame(renderStacks);
+			}
+
+			const buttons = document.getElementById("buttons");
+			const socket = new WebSocket("ws://localhost:3000");
+			let port = null;
+
+			// Sending
+			const send_button = document.getElementById("send");
+
+			send_button.addEventListener("click", async () => {
+				if (!port) {
+					port = await navigator.serial.requestPort();
+					await port.open({ baudRate: 9600 });
+					receive_button.remove();
+				}
+
+				const text_decoder = new TextDecoderStream();
+				const line_transformer = new TransformStream(
+					new LineBreakTransformer(),
+				);
+				const decoder = port.readable
+					.pipeThrough(text_decoder)
+					.pipeThrough(line_transformer);
+
+				for await (const text of decoder) {
+					console.log("Sending: ", text);
+					socket.send(text);
+					break;
+				}
+			});
+
+			// Receiving
+			const receive_button = document.getElementById("receive");
+
+			receive_button.addEventListener("click", async () => {
+				port = await navigator.serial.requestPort();
+				await port.open({ baudRate: 9600 });
+
+				buttons.remove();
+			});
+
+			socket.addEventListener("message", (event) => {
+				console.log(`Received: ${event.data}`);
+				port.writable.getWriter().write(event.data);
+
+				const data = parse(event.data);
+
+
+			});
+		</script>
+	</head>
+
+	<body>
+		<h1>Soup hands</h1>
+
+		<div id="hands">
+			<img alt=""	src="/hands/left/base.png" />
+			<img alt=""	src="/hands/right/base.png" />
+
+			<div id="one" class="hand-stack" data-side="left" data-slot="1">
+				<img alt="" src="/hands/left/1/1.png" />
+				<img alt="" src="/hands/left/1/2.png" />
+				<img alt="" src="/hands/left/1/3.png" />
+				<img alt="" src="/hands/left/1/4.png" />
+				<img alt="" src="/hands/left/1/5.png" />
+				<img alt="" src="/hands/left/1/6.png" />
+			</div>
+
+			<div id="two" class="hand-stack" data-side="left" data-slot="2">
+				<img alt="" src="/hands/left/2/1.png" />
+				<img alt="" src="/hands/left/2/2.png" />
+				<img alt="" src="/hands/left/2/3.png" />
+				<img alt="" src="/hands/left/2/4.png" />
+				<img alt="" src="/hands/left/2/5.png" />
+				<img alt="" src="/hands/left/2/6.png" />
+			</div>
+
+			<div id="three" class="hand-stack" data-side="left" data-slot="3">
+				<img alt="" src="/hands/left/3/1.png" />
+				<img alt="" src="/hands/left/3/2.png" />
+				<img alt="" src="/hands/left/3/3.png" />
+				<img alt="" src="/hands/left/3/4.png" />
+				<img alt="" src="/hands/left/3/5.png" />
+				<img alt="" src="/hands/left/3/6.png" />
+			</div>
+		</div>
+
+		<div id="buttons">
+			<button id="receive">Receive</button>
+			<button id="send">Send</button>
+		</div>
+
+		<script>
+			/* ---------------- COLOR LOGIC ---------------- */
+
+			// const socket2 = new WebSocket("ws://localhost:3000");
+
+			// socket2.addEventListener("message", (event) => {
+			//     const data = JSON.parse(event.data);
+			//     let color = "gray";
+
+			//     const category = Number(data.category);
+			//     const sensor = Number(data.sensor);
+
+			//     if (category === 0)
+			//         color = "rgba(255,255,0,0.6)";   // yellow
+
+			//     else if (category === 1)
+			//         color = "rgba(255,165,0,0.6)";   // orange
+
+			//     else
+			//         color = "rgba(255,80,50,0.6)";   // red
+
+			//     const box = document.getElementById("sensor" + sensor);
+
+			//     if (box) box.style.backgroundColor = color;
+
+			// });
+
+			// /* ---------------- DRAG FUNCTION (UNCHANGED LOGIC) ---------------- */
+
+			// function makeDraggable(el) {
+
+			//     let offsetX, offsetY, dragging = false;
+
+			//     el.addEventListener("mousedown", (e) => {
+
+			//         dragging = true;
+
+			//         offsetX = e.clientX - el.offsetLeft;
+			//         offsetY = e.clientY - el.offsetTop;
+
+			//     });
+
+			//     document.addEventListener("mousemove", (e) => {
+
+			//         if (!dragging) return;
+
+			//         el.style.left = (e.clientX - offsetX) + "px";
+			//         el.style.top = (e.clientY - offsetY) + "px";
+
+			//     });
+
+			//     document.addEventListener("mouseup", () => {
+
+			//         dragging = false;
+
+			//     });
+
+			// }
+
+			// /* enable dragging */
+
+			// makeDraggable(document.getElementById("sensor1"));
+			// makeDraggable(document.getElementById("sensor2"));
+			// makeDraggable(document.getElementById("sensor3"));
+			// makeDraggable(document.getElementById("sensor4"));
+		</script>
+	</body>
 </html>
