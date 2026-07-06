@@ -1,195 +1,270 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOUP HANDS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            box-sizing: border-box;
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
         }
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #FFF9E5;
-            font-family: 'Cinzel', serif;
+
+        .buttonWrap{
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display:flex;
+    justify-content:center;
+}
+
+
+        body{
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #FFFDF8, #FFF4E6);
+            margin-top: 60px;
+            color:#222;
         }
 
-        h1 {
-            margin: 0 0 32px;
-            font-family: 'Cinzel Decorative', serif;
-            font-size: clamp(2rem, 6vw, 3.25rem);
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            color: #000033;
-            text-transform: uppercase;
-            text-align: center;
-            text-shadow:
-                0 0 8px #FFD700,
-                0 0 16px #FFD700,
-                0 0 24px rgba(255, 215, 0, 0.6),
-                2px 3px 6px rgba(0, 0, 0, 0.25);
+        /* ---------------- HEADER ---------------- */
+
+        #handshakeBtn{
+
+    background:#7a4a2d;  /* brown */
+
+    color:white;
+
+    font-size:18px;
+
+    font-family:"Courier New", monospace;
+
+    letter-spacing:2px;
+
+    padding:14px 30px;
+
+    border:none;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    box-shadow:0 10px 25px rgba(122,74,45,0.35);
+
+    transition: all 0.2s ease;
+}
+
+#handshakeBtn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px rgba(122,74,45,0.5);
+}
+
+#handshakeBtn:active{
+    transform:translateY(1px);
+}
+
+        h1{
+            font-size:60px;
+            font-family:"Courier New", monospace;
+            color:#ff9800;
+            text-align:center;
+            letter-spacing:5px;
+
+            animation: floatTitle 3s ease-in-out infinite;
         }
 
-        .hands-wrap {
+        @keyframes floatTitle{
+            0%{ transform: translateY(0); }
+            50%{
+                transform: translateY(-6px);
+                text-shadow: 0 0 20px rgba(255,140,0,0.4);
+            }
+            100%{ transform: translateY(0); }
+        }
+
+        h2{
+            text-align:center;
+            font-family: monospace;
+            font-size:18px;
+            color:rgba(122,74,45,0.35);
+            margin-top:8px;
+        }
+
+        h2::after{
+            content:"";
+            animation:dots 1.5s infinite;
+        }
+
+        @keyframes dots{
+            0%{content:"";}
+            33%{content:".";}
+            66%{content:"..";}
+            100%{content:"...";}
+        }
+
+        /* ---------------- CONTAINER ---------------- */
+
+        .container {
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            width: min(900px, 92vw);
-            margin-bottom: 36px;
+            width: 900px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         }
 
-        .hand {
-            width: min(380px, 42vw);
-            height: auto;
+        #hand {
+            width: 100%;
             display: block;
             user-select: none;
             pointer-events: none;
-            mix-blend-mode: screen;
         }
 
-        .hand.right {
-            transform: scaleX(-1);
-        }
+        /* ---------------- SENSOR BOX ---------------- */
 
         .sensor {
             position: absolute;
-            width: 72px;
-            height: 52px;
-            border-radius: 50%;
-            border: 2px solid #3d7fd4;
-            background: radial-gradient(
-                ellipse at center,
-                rgba(255, 40, 40, 0.85) 0%,
-                rgba(255, 140, 0, 0.7) 30%,
-                rgba(255, 220, 0, 0.55) 55%,
-                rgba(80, 200, 80, 0.45) 80%,
-                rgba(80, 200, 80, 0.2) 100%
-            );
+            width: 80px;
+            height: 80px;
+
+            background: rgba(0, 255, 0, 0.5);
+
+            border: 2px solid white;
+
             cursor: grab;
-            opacity: 0.92;
+
+            resize: both;
+            overflow: auto;
+
+            border-radius: 8px;
+
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+
+            transition: background-color 0.2s ease;
         }
 
         .sensor:active {
             cursor: grabbing;
         }
 
-        #sensor1 { top: 58%; left: 14%; }
-        #sensor2 { top: 28%; left: 22%; }
-        #sensor3 { top: 58%; right: 14%; }
-        #sensor4 { top: 28%; right: 22%; }
+        /* initial positions */
 
-        .buttons {
-            display: flex;
-            gap: 24px;
-            align-items: center;
-            justify-content: center;
-        }
+        #sensor1 { top: 450px; left: 100px; }
+        #sensor2 { top: 200px; left: 300px; }
+        #sensor3 { top: 350px; left: 500px; }
+        #sensor4 { top: 150px; left: 650px; }
 
-        .btn {
-            background: #000066;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 44px;
-            font-family: 'Cinzel Decorative', serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: background 0.15s ease, transform 0.15s ease;
-        }
-
-        .btn:hover {
-            background: #000088;
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
     </style>
 </head>
 
 <body>
 
-    <h1>SOUP HANDS</h1>
+<h1>SOUP HANDS</h1>
+<h2>long distance handshakes at the end of the world...</h2>
 
-    <div class="hands-wrap">
-        <img class="hand left" src="assets/hands.png" alt="Left hand">
-        <img class="hand right" src="assets/hands.png" alt="Right hand">
+<div class="container">
 
-        <div id="sensor1" class="sensor"></div>
-        <div id="sensor2" class="sensor"></div>
-        <div id="sensor3" class="sensor"></div>
-        <div id="sensor4" class="sensor"></div>
-    </div>
+    <img id="hand"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8gUoKCZA7wYE2ZOa-MmyfsCaMMQx-iIXf0rgs1GQ766JnCnYVfn_kll8&s=10">
 
-    <div class="buttons">
-        <button class="btn" type="button">send</button>
-        <button class="btn" type="button">recieve</button>
-    </div>
+    <div id="sensor1" class="sensor"></div>
+    <div id="sensor2" class="sensor"></div>
+    <div id="sensor3" class="sensor"></div>
+    <div id="sensor4" class="sensor"></div>
 
-    <script src="/socket.io/socket.io.js"></script>
+</div>
 
-    <script>
-        const socket = io();
+<div class="buttonWrap">
 
-        const heatMapGradient = (innerColor) =>
-            `radial-gradient(ellipse at center, ${innerColor} 0%, rgba(255,140,0,0.7) 30%, rgba(255,220,0,0.55) 55%, rgba(80,200,80,0.45) 80%, rgba(80,200,80,0.2) 100%)`;
+    <button id="handshakeBtn">
+        SEND HANDSHAKE
+    </button>
 
-        socket.on("sensor", data => {
-            let innerColor = "rgba(128,128,128,0.85)";
+</div>
 
-            const category = Number(data.category);
-            const sensor = Number(data.sensor);
+<script src="/socket.io/socket.io.js"></script>
 
-            if (category === 0) innerColor = "rgba(80,200,80,0.85)";
-            else if (category === 1) innerColor = "rgba(255,220,0,0.85)";
-            else innerColor = "rgba(255,40,40,0.85)";
+<script>
 
-            const box = document.getElementById("sensor" + sensor);
-            if (box) box.style.background = heatMapGradient(innerColor);
-        });
+const socket = io();
 
-        function makeDraggable(el) {
-            let offsetX, offsetY, dragging = false;
+/* ---------------- COLOR LOGIC ---------------- */
 
-            el.addEventListener("mousedown", (e) => {
-                dragging = true;
-                offsetX = e.clientX - el.offsetLeft;
-                offsetY = e.clientY - el.offsetTop;
-            });
+socket.on("sensor", data => {
 
-            document.addEventListener("mousemove", (e) => {
-                if (!dragging) return;
-                el.style.left = (e.clientX - offsetX) + "px";
-                el.style.top = (e.clientY - offsetY) + "px";
-                el.style.right = "auto";
-            });
+    let color = "gray";
 
-            document.addEventListener("mouseup", () => {
-                dragging = false;
-            });
-        }
+    const category = Number(data.category);
+    const sensor = Number(data.sensor);
 
-        makeDraggable(document.getElementById("sensor1"));
-        makeDraggable(document.getElementById("sensor2"));
-        makeDraggable(document.getElementById("sensor3"));
-        makeDraggable(document.getElementById("sensor4"));
-    </script>
+    if (category === 0)
+        color = "rgba(255,255,0,0.6)";   // yellow
+
+    else if (category === 1)
+        color = "rgba(255,165,0,0.6)";   // orange
+
+    else
+        color = "rgba(255,80,50,0.6)";   // red
+
+    const box = document.getElementById("sensor" + sensor);
+
+    if (box) box.style.backgroundColor = color;
+
+});
+
+/* ---------------- DRAG FUNCTION (UNCHANGED LOGIC) ---------------- */
+
+function makeDraggable(el) {
+
+    let offsetX, offsetY, dragging = false;
+
+    el.addEventListener("mousedown", (e) => {
+
+        dragging = true;
+
+        offsetX = e.clientX - el.offsetLeft;
+        offsetY = e.clientY - el.offsetTop;
+
+    });
+
+    document.addEventListener("mousemove", (e) => {
+
+        if (!dragging) return;
+
+        el.style.left = (e.clientX - offsetX) + "px";
+        el.style.top = (e.clientY - offsetY) + "px";
+
+    });
+
+    document.addEventListener("mouseup", () => {
+
+        dragging = false;
+
+    });
+
+}
+
+/* enable dragging */
+
+makeDraggable(document.getElementById("sensor1"));
+makeDraggable(document.getElementById("sensor2"));
+makeDraggable(document.getElementById("sensor3"));
+makeDraggable(document.getElementById("sensor4"));
+
+
+document.getElementById("handshakeBtn").addEventListener("click", () => {
+    socket.emit("handshake", {
+        time: Date.now()
+    });
+
+    console.log("HANDSHAKE SENT");
+});
+</script>
 
 </body>
 </html>
