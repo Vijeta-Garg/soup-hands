@@ -1,3 +1,5 @@
+
+
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -12,7 +14,7 @@ const io = new Server(server);
 app.use(express.static("public"));
 
 const port = new SerialPort({
-    path: "COM3",
+    path: "COM7",
     baudRate: 57600
 });
 
@@ -34,3 +36,4 @@ parser.on("data", (line) => {
 server.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
+
