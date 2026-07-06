@@ -5,7 +5,6 @@
     <title>SOUP HANDS</title>
 
     <style>
-
         *{
             margin:0;
             padding:0;
@@ -160,6 +159,65 @@
         #sensor4 { top: 150px; left: 650px; }
 
     </style>
+
+    <script type="module">
+        class LineBreakTransformer {
+            buffer = "";
+
+            transform(chunk, controller) {
+                this.buffer += chunk;
+                const lines = this.buffer.split("\r\n");
+                this.buffer = lines.pop() ?? "";
+
+                for (const line of lines) {
+                    controller.enqueue(line);
+                }
+            }
+
+            flush(controller) {
+                if (this.buffer) {
+                    controller.enqueue(this.buffer);
+                }
+            }
+        }
+
+        const socket = new WebSocket("ws://localhost:3000");
+
+        // Serial
+        const serial_button = document.getElementById("serial");
+        let port = null;
+
+        serial_button.addEventListener("click", async () => {
+            port = await navigator.serial.requestPort();
+            await port.open({ baudRate: 9600 });
+
+            serial_button.remove();
+        });
+
+        // Sending
+        const handshake_button = document.getElementById("handshakeBtn");
+
+        handshake_button.addEventListener("click", async () => {
+            const text_decoder = new TextDecoderStream();
+            const line_transformer = new TransformStream(new LineBreakTransformer());
+            const decoder = port.readable
+                .pipeThrough(text_decoder)
+                .pipeThrough(line_transformer);
+
+            // TODO
+            socket.send("Fake data");
+
+            for await (const text of decoder) {
+                socket.send(text);
+                break;
+            }
+        });
+
+        // Receiving
+        socket.addEventListener("message", (event) => {
+            port.writable.getWriter().write(event.data + "\n");
+        });
+    </script>
 </head>
 
 <body>
@@ -180,90 +238,76 @@
 </div>
 
 <div class="buttonWrap">
+    <button id="serial">Connect serial</button>
 
     <button id="handshakeBtn">
         SEND HANDSHAKE
     </button>
-
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
-
 <script>
+// /* ---------------- COLOR LOGIC ---------------- */
 
-const socket = io();
+// socket.on("sensor", data => {
 
-/* ---------------- COLOR LOGIC ---------------- */
+//     let color = "gray";
 
-socket.on("sensor", data => {
+//     const category = Number(data.category);
+//     const sensor = Number(data.sensor);
 
-    let color = "gray";
+//     if (category === 0)
+//         color = "rgba(255,255,0,0.6)";   // yellow
 
-    const category = Number(data.category);
-    const sensor = Number(data.sensor);
+//     else if (category === 1)
+//         color = "rgba(255,165,0,0.6)";   // orange
 
-    if (category === 0)
-        color = "rgba(255,255,0,0.6)";   // yellow
+//     else
+//         color = "rgba(255,80,50,0.6)";   // red
 
-    else if (category === 1)
-        color = "rgba(255,165,0,0.6)";   // orange
+//     const box = document.getElementById("sensor" + sensor);
 
-    else
-        color = "rgba(255,80,50,0.6)";   // red
+//     if (box) box.style.backgroundColor = color;
 
-    const box = document.getElementById("sensor" + sensor);
+// });
 
-    if (box) box.style.backgroundColor = color;
+// /* ---------------- DRAG FUNCTION (UNCHANGED LOGIC) ---------------- */
 
-});
+// function makeDraggable(el) {
 
-/* ---------------- DRAG FUNCTION (UNCHANGED LOGIC) ---------------- */
+//     let offsetX, offsetY, dragging = false;
 
-function makeDraggable(el) {
+//     el.addEventListener("mousedown", (e) => {
 
-    let offsetX, offsetY, dragging = false;
+//         dragging = true;
 
-    el.addEventListener("mousedown", (e) => {
+//         offsetX = e.clientX - el.offsetLeft;
+//         offsetY = e.clientY - el.offsetTop;
 
-        dragging = true;
+//     });
 
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
+//     document.addEventListener("mousemove", (e) => {
 
-    });
+//         if (!dragging) return;
 
-    document.addEventListener("mousemove", (e) => {
+//         el.style.left = (e.clientX - offsetX) + "px";
+//         el.style.top = (e.clientY - offsetY) + "px";
 
-        if (!dragging) return;
+//     });
 
-        el.style.left = (e.clientX - offsetX) + "px";
-        el.style.top = (e.clientY - offsetY) + "px";
+//     document.addEventListener("mouseup", () => {
 
-    });
+//         dragging = false;
 
-    document.addEventListener("mouseup", () => {
+//     });
 
-        dragging = false;
+// }
 
-    });
+// /* enable dragging */
 
-}
-
-/* enable dragging */
-
-makeDraggable(document.getElementById("sensor1"));
-makeDraggable(document.getElementById("sensor2"));
-makeDraggable(document.getElementById("sensor3"));
-makeDraggable(document.getElementById("sensor4"));
-
-
-document.getElementById("handshakeBtn").addEventListener("click", () => {
-    socket.emit("handshake", {
-        time: Date.now()
-    });
-
-    console.log("HANDSHAKE SENT");
-});
+// makeDraggable(document.getElementById("sensor1"));
+// makeDraggable(document.getElementById("sensor2"));
+// makeDraggable(document.getElementById("sensor3"));
+// makeDraggable(document.getElementById("sensor4"));
 </script>
 
 </body>

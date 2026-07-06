@@ -1,39 +1,26 @@
-
-
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const WebSocket = require("ws");
 
 const { SerialPort } = require("serialport");
 const { ReadlineParser } = require("@serialport/parser-readline");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const wss = new WebSocket.Server({ server });
 
 app.use(express.static("public"));
 
-const port = new SerialPort({
-    path: "COM7",
-    baudRate: 57600
-});
+wss.on("connection", (ws) => {
+    for (const client of wss.clients) {
+        if (client === ws) continue;
 
-const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
-
-parser.on("data", (line) => {
-    console.log(line);
-
-    const parts = line.split(",");
-    if (parts.length !== 3) return;
-
-    io.emit("sensor", {
-        sensor: Number(parts[0]),
-        value: Number(parts[1]),
-        category: Number(parts[2])
-    });
+        ws.on("message", (message) => {
+            client.send(message.toString());
+        });
+    }
 });
 
 server.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
-
