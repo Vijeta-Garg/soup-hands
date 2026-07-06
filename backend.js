@@ -16,6 +16,7 @@ wss.on("connection", (ws) => {
         if (client === ws) continue;
 
         ws.on("message", (message) => {
+            console.log("broadcasting: ", message.toString());
             client.send(message.toString());
         });
     }

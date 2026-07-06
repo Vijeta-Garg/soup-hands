@@ -14,19 +14,19 @@ const int HX711_sck_3 = 4;   // Connect to HX711 no 3 sck pin
 // const int HX711_sck_4 = 21;  // Connect to HX711 no 4 sck pin
 
 // HX711 constructors (dout pin, sck pin)
-HX711_ADC LoadCell_1(HX711_dout_1, HX711_sck_1); 
-HX711_ADC LoadCell_2(HX711_dout_2, HX711_sck_2); 
-HX711_ADC LoadCell_3(HX711_dout_3, HX711_sck_3); 
-// HX711_ADC LoadCell_4(HX711_dout_4, HX711_sck_4); 
+HX711_ADC LoadCell_1(HX711_dout_1, HX711_sck_1);
+HX711_ADC LoadCell_2(HX711_dout_2, HX711_sck_2);
+HX711_ADC LoadCell_3(HX711_dout_3, HX711_sck_3);
+// HX711_ADC LoadCell_4(HX711_dout_4, HX711_sck_4);
 
 unsigned long t = 0;
 
 void setup() {
-  Serial.begin(115200); 
+  Serial.begin(115200);
   delay(10);
 
-  float calibrationValue_1 = 696.0; 
-  float calibrationValue_2 = 733.0; 
+  float calibrationValue_1 = 696.0;
+  float calibrationValue_2 = 733.0;
   float calibrationValue_3 = 1.0;   // TODO: Replace with your actual calibration factor for Sensor 3
   // float calibrationValue_4 = 1.0;   // TODO: Replace with your actual calibration factor for Sensor 4
 
@@ -35,25 +35,25 @@ void setup() {
   LoadCell_3.begin();
   // LoadCell_4.begin();
 
-  unsigned long stabilizingtime = 2000; 
-  boolean _tare = true; 
+  unsigned long stabilizingtime = 2000;
+  boolean _tare = true;
   byte loadcell_1_rdy = 0;
   byte loadcell_2_rdy = 0;
   byte loadcell_3_rdy = 0;
   // byte loadcell_4_rdy = 0;
 
   // Wait until all 4 load cells are stabilized and ready
-  while ((loadcell_1_rdy + loadcell_2_rdy + loadcell_3_rdy) < 3) { 
+  while ((loadcell_1_rdy + loadcell_2_rdy + loadcell_3_rdy) < 3) {
     if (!loadcell_1_rdy) loadcell_1_rdy = LoadCell_1.startMultiple(stabilizingtime, _tare);
     if (!loadcell_2_rdy) loadcell_2_rdy = LoadCell_2.startMultiple(stabilizingtime, _tare);
     if (!loadcell_3_rdy) loadcell_3_rdy = LoadCell_3.startMultiple(stabilizingtime, _tare);
     // if (!loadcell_4_rdy) loadcell_4_rdy = LoadCell_4.startMultiple(stabilizingtime, _tare);
   }
 
-  LoadCell_1.setCalFactor(calibrationValue_1); 
-  LoadCell_2.setCalFactor(calibrationValue_2); 
-  LoadCell_3.setCalFactor(calibrationValue_3); 
-  // LoadCell_4.setCalFactor(calibrationValue_4); 
+  LoadCell_1.setCalFactor(calibrationValue_1);
+  LoadCell_2.setCalFactor(calibrationValue_2);
+  LoadCell_3.setCalFactor(calibrationValue_3);
+  // LoadCell_4.setCalFactor(calibrationValue_4);
 }
 
 void loop() {
@@ -105,30 +105,30 @@ void loop() {
       // } else if (d < 15000) {
       //   category_4 = 1;
       // }
-      
+
       // Send Load Cell 1 (Format: sensor,value,category)
       Serial.print("1,");
       Serial.print(a);
       Serial.print(",");
-      Serial.println(category_1); 
+      Serial.println(category_1);
 
       // Send Load Cell 2 (Format: sensor,value,category)
       Serial.print("2,");
       Serial.print(b);
       Serial.print(",");
-      Serial.println(category_2); 
+      Serial.println(category_2);
 
       // Send Load Cell 3 (Format: sensor,value,category)
       Serial.print("3,");
       Serial.print(c);
       Serial.print(",");
-      Serial.println(category_3); 
+      Serial.println(category_3);
 
       // Send Load Cell 4 (Format: sensor,value,category)
       // Serial.print("4,");
       // Serial.print(d);
       // Serial.print(",");
-      // Serial.println(category_4); 
+      // Serial.println(category_4);
 
       newDataReady = 0;
       t = millis();

@@ -166,18 +166,19 @@
 
             transform(chunk, controller) {
                 this.buffer += chunk;
-                const lines = this.buffer.split("\r\n");
-                this.buffer = lines.pop() ?? "";
+                const matches = [...this.buffer.matchAll(/1,.+\r\n(?:\d,.+\r\n){2}/g)]
+                // this.buffer = this.buffer.slice(matches.at(-1).index + matches.at(-1).length);
 
-                for (const line of lines) {
-                    controller.enqueue(line);
+                for (const line of matches) {
+                    this.buffer = "";
+                    controller.enqueue(line.toString());
                 }
             }
 
             flush(controller) {
-                if (this.buffer) {
-                    controller.enqueue(this.buffer);
-                }
+                // if (this.buffer) {
+                //     // controller.enqueue(this.buffer);
+                // }
             }
         }
 
@@ -204,10 +205,8 @@
                 .pipeThrough(text_decoder)
                 .pipeThrough(line_transformer);
 
-            // TODO
-            socket.send("Fake data");
-
             for await (const text of decoder) {
+                console.log("Sending: ", text);
                 socket.send(text);
                 break;
             }
@@ -215,7 +214,8 @@
 
         // Receiving
         socket.addEventListener("message", (event) => {
-            port.writable.getWriter().write(event.data + "\n");
+            console.log(`Received: ${event.data}`)
+            port.writable.getWriter().write(event.data);
         });
     </script>
 </head>
@@ -246,10 +246,12 @@
 </div>
 
 <script>
-// /* ---------------- COLOR LOGIC ---------------- */
+/* ---------------- COLOR LOGIC ---------------- */
 
-// socket.on("sensor", data => {
+// const socket2 = new WebSocket("ws://localhost:3000");
 
+// socket2.addEventListener("message", (event) => {
+//     const data = JSON.parse(event.data);
 //     let color = "gray";
 
 //     const category = Number(data.category);
